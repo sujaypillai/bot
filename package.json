@@ -1,0 +1,15 @@
+{
+  "name": "click",
+  "version": "1.0.0",
+  "description": "first bot",
+  "main": "y",
+  "scripts": {
+    "test": "Hi"
+  },
+  "author": "Sid",
+  "license": "ISC",
+  "dependencies": {
+    "botbuilder": "^3.8.1",
+    "restify": "^4.3.0"
+  }
+}
