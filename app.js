@@ -3,7 +3,7 @@ var builder = require('botbuilder');
 
 var google = require('google')
 
-google.resultsPerPage = 5
+google.resultsPerPage = 1
 var nextCounter = 0
 
 // Setup Restify Server
@@ -34,8 +34,6 @@ var bot = new builder.UniversalBot(connector, function (session) {
 				var link = res.links[i];
 				session.send(link.title + ' - ' + link.href);
 				session.send(link.description + "\n");
-				//console.log(link.title + ' - ' + link.href)
-				//console.log(link.description + "\n")
 				}
  
 			  if (nextCounter < 4) {
