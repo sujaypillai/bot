@@ -1,11 +1,10 @@
 var restify = require('restify');
 var builder = require('botbuilder');
 
-var AzureSearch = require('azure-search');
-var client = AzureSearch({
-    url: "https://mysearchclick101.search.windows.net",
-    key:"C28941E335F310FE3A1C5360394EFCC8"
-});
+var google = require('google')
+
+google.resultsPerPage = 1
+var nextCounter = 0
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -19,22 +18,29 @@ var connector = new builder.ChatConnector({
     appPassword:'QFMJKqZYOpFsAt2u2vYYSNc'
 });
 
-		// Listen for messages from users 
-		server.post('/api/messages', connector.listen());
+// Listen for messages from users 
+server.post('/api/messages', connector.listen());
 
-		// Receive messages from the user and respond by echoing each message back (prefixed with 'You said:')
-		var bot = new builder.UniversalBot(connector, function (session) {
-			if(session.message.text=="Hi"){
-					session.send("%s, How can I help you?", session.message.text);
-			}else{
-		// search the index 
-		client.search('temp', {search: "document", top: 3}, function(err, results, raw){
-			// raw argument contains response body as described here: 
-			// https://msdn.microsoft.com/en-gb/library/azure/dn798927.aspx 
-			session.send(results);
-			session.send(raw);
-		});
-		 
+// Receive messages from the user and respond by echoing each message back (prefixed with 'You said:')
+var bot = new builder.UniversalBot(connector, function (session) {
+	if(session.message.text=="Hi"){
+    		session.send("%s, How can I help you?", session.message.text);
+	}else{
+		
+		 google(session.message.text, function (err, res){
+			if (err) console.error(err)
+ 
+			  for (var i = 0; i < res.links.length; ++i) {
+				var link = res.links[i];
+				session.send(link.title + ' - ' + link.href);
+				session.send(link.description + "\n");
+				}
+ 
+			  if (nextCounter < 4) {
+				nextCounter += 1
+				if (res.next) res.next()
+				}
+		})
 	}
 	
 });
