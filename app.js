@@ -1,10 +1,14 @@
+var util = require('util');
+var _ = require('lodash');
 var restify = require('restify');
 var builder = require('botbuilder');
 
-var google = require('google')
+var SearchLibrary = require('./SearchDialogLibrary');
+var AzureSearch = require('./SearchProviders/azure-search');
 
-google.resultsPerPage = 1
-var nextCounter = 0
+// Azure Search
+var azureSearchClient = AzureSearch.create('mysearchclick101', 'C28941E335F310FE3A1C5360394EFCC8', 'temp');
+var ResultsMapper = SearchLibrary.defaultResultsMapper(ToSearchHit);
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -27,20 +31,43 @@ var bot = new builder.UniversalBot(connector, function (session) {
     		session.send("%s, How can I help you?", session.message.text);
 	}else{
 		
-		 google(session.message.text, function (err, res){
-			if (err) console.error(err)
- 
-			  for (var i = 0; i < res.links.length; ++i) {
-				var link = res.links[i];
-				session.send(link.title + ' - ' + link.href);
-				session.send(link.description + "\n");
+		
+		
+			
+					// Trigger Azure Search dialogs 
+					SearchLibrary.begin(session);
+			
+				
+					// Process selected search results
+					session.send(
+						'Search Completed!',
+						args.selection.map(  )); // format your response 
+			
+				
+				
+			bot.library(SearchLibrary.create({
+				multipleSelection: true,
+				search: function (query) { return azureSearchClient.search(query).then(ResultsMapper); },
+				refiners: ['refiner1', 'refiner2', 'refiner3'], // customize your own refiners 
+				refineFormatter: function (refiners) {
+					return _.zipObject(
+						refiners.map(function (r) { return 'By ' + _.capitalize(r); }),
+						refiners);
 				}
- 
-			  if (nextCounter < 4) {
-				nextCounter += 1
-				if (res.next) res.next()
-				}
-		})
+			}));
+
+
+
 	}
 	
 });
+
+			function ToSearchHit(azureResponse) {
+				return {
+					// define your own parameters 
+					key: azureResponse.Incident,
+					title: azureResponse.Description,
+					Description: azureResponse.Solution,
+					
+				};
+			}	
