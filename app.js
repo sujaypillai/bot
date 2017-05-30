@@ -1,12 +1,10 @@
-var util = require('util');
-var _ = require('lodash');
 var restify = require('restify');
 var builder = require('botbuilder');
 
-var SearchLibrary = require('./SearchDialogLibrary');
-var AzureSearch = require('./SearchProviders/azure-search');
+var google = require('google')
 
-
+google.resultsPerPage = 1
+var nextCounter = 0
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -16,64 +14,33 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Create chat connector for communicating with the Bot Framework Service
 var connector = new builder.ChatConnector({
-    appId:'020a1c9a-699e-4729-882b-1ba7c45de728',
-    appPassword:'EzcgTCsBwsVY84p9JP9WHdm'
+    appId:'f8cb1502-538e-4159-813e-5b5b9e84e1ce',
+    appPassword:'QFMJKqZYOpFsAt2u2vYYSNc'
 });
 
 // Listen for messages from users 
 server.post('/api/messages', connector.listen());
 
 // Receive messages from the user and respond by echoing each message back (prefixed with 'You said:')
-/*
- var bot = new builder.UniversalBot(connector, function (session) {
+var bot = new builder.UniversalBot(connector, function (session) {
 	if(session.message.text=="Hi"){
     		session.send("%s, How can I help you?", session.message.text);
-	}else{			
-					// Trigger Azure Search dialogs 
-					SearchLibrary.begin(session);
-
-					// Process selected search results
-					session.send(
-						'Search Completed!',
-						args.selection.map(  )); // format your response 
-
+	}else{
+		
+		 google(session.message.text, function (err, res){
+			if (err) console.error(err)
+ 
+			  for (var i = 0; i < res.links.length; ++i) {
+				var link = res.links[i];
+				session.send(link.title + ' - ' + link.href);
+				session.send(link.description + "\n");
+				}
+ 
+			  if (nextCounter < 4) {
+				nextCounter += 1
+				if (res.next) res.next()
+				}
+		})
 	}
 	
-}); 
-*/
-var bot = new builder.UniversalBot(connector, [
-    function (session) {
-        // Trigger Search
-        SearchLibrary.begin(session);
-    },
-    function (session, args) {
-        // Process selected search results
-        session.send(
-            'Done!' );
-    }
-]); 
-
-// Azure Search
-// C28941E335F310FE3A1C5360394EFCC8
-var azureSearchClient = AzureSearch.create('mysearchclick101', 'C28941E335F310FE3A1C5360394EFCC8', 'temp');
-var ResultsMapper = SearchLibrary.defaultResultsMapper(ToSearchHit);
-
-			bot.library(SearchLibrary.create({
-				multipleSelection: true,
-				search: function (query) { return azureSearchClient.search(query).then(ResultsMapper); },
-				refiners: ['refiner1', 'refiner2', 'refiner3'], // customize your own refiners 
-				refineFormatter: function (refiners) {
-					return _.zipObject(
-						refiners.map(function (r) { return 'By ' + _.capitalize(r); }),
-						refiners);
-				}
-			}));
-			function ToSearchHit(azureResponse) {
-				return {
-					// define your own parameters 
-					key: azureResponse.Incident,
-					title: azureResponse.Description,
-					Description: azureResponse.Solution,
-					
-				};
-			}	
+});
