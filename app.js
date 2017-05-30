@@ -24,7 +24,7 @@ var connector = new builder.ChatConnector({
 server.post('/api/messages', connector.listen());
 
 // Receive messages from the user and respond by echoing each message back (prefixed with 'You said:')
-/* var bot = new builder.UniversalBot(connector, function (session) {
+ var bot = new builder.UniversalBot(connector, function (session) {
 	if(session.message.text=="Hi"){
     		session.send("%s, How can I help you?", session.message.text);
 	}else{			
@@ -38,7 +38,8 @@ server.post('/api/messages', connector.listen());
 
 	}
 	
-}); */
+}); 
+/*
 var bot = new builder.UniversalBot(connector, [
     function (session) {
         // Trigger Search
@@ -49,7 +50,7 @@ var bot = new builder.UniversalBot(connector, [
         session.send(
             'Done!' );
     }
-]);
+]); */
 
 // Azure Search
 // C28941E335F310FE3A1C5360394EFCC8
