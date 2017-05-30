@@ -4,12 +4,16 @@ var Promise = require('bluebird');
 var request = require('request');
 
 function create(serviceName, serviceKey, index) {
+	console.log(" Azure Search create called");
     // base url
     // e.g.: https://realestate.search.windows.net/indexes('listings')/docs/search.post.search?api-version=2015-02-28-Preview 
-    var url = "https://" + serviceName + ".search.windows.net" +
+   var url = "https://" + serviceName + ".search.windows.net" +
         "/indexes('" + index + "')" +
-        "/docs/search.post.search?api-version=2015-02-28-Preview";
-
+        "/docs/search.post.search?api-version=2015-02-28-Preview"; 
+ /*var url = "https://" + serviceName + ".search.windows.net" +
+        "/indexes('" + index + "')" +
+        "docs/search.post.search?api-version=2016-09-01"; */		
+console.log("URL:"+url);
     return {
         search: function (query) {
             return new Promise(function (resolve, reject) {
@@ -36,10 +40,10 @@ function create(serviceName, serviceKey, index) {
 
                 console.log('AzureSearch.query:', options.body);
                 request.post(options, function (err, httpResponse, azureResponse) {
-                    if (err) {
+                    if (err) {		
+						console.log("Error:"+err);					
                         return reject(err);
                     }
-
                     resolve({
                         results: azureResponse.value,
                         facets: getFacets(azureResponse)

@@ -13,6 +13,8 @@ const CancelOption = 'Cancel';
 
 // Create the BotBuilder library for Search with the specified Id
 function create(settings) {
+
+	console.log(" Index create called");
     settings = Object.assign({}, defaultSettings, settings);
     if (typeof settings.search !== 'function') {
         throw new Error('options.search is required');
@@ -97,9 +99,9 @@ function create(settings) {
 
                 session.send(reply);
 
-                session.send(settings.multipleSelection ?
-                    'You can select one or more to add to your list, *list* what you\'ve selected so far, *refine* these results, see *more* or search *again*.' :
-                    'You can select one, *refine* these results, see *more* or search *again*.');
+                //session.send(settings.multipleSelection ?
+                //    'You can select one or more to add to your list, *list* what you\'ve selected so far, *refine* these results, see *more* or search *again*.' :
+                //    'You can select one, *refine* these results, see *more* or search *again*.');
 
             })
             .matches(/again|reset/i, (session) => {
@@ -137,9 +139,26 @@ function create(settings) {
 
                     var query = session.dialogData.query;
                     if (settings.multipleSelection) {
+						
+						 
+						
+							
+						
+        // create the card based on selection
+//        var selectedCardName = hit.title;
+        var card = createCard(session,hit.title,hit.key,hit.Description);
+
+        // attach the card to the reply message
+        var msg = new builder.Message(session).addAttachment(card);						
+						session.send(msg);
+						
+						
+						
+						
+						
                         // Multi-select -> Continue?
-                        session.send('%s was added to your list!', hit.title);
-                        session.beginDialog('confirm-continue', { selection: selection, query: query });
+                        //session.send('Description : %s Solution: %s', hit.title, hit.Description);
+							session.beginDialog('confirm-continue', { selection: selection, query: query });
                     } else {
                         // Single-select -> done!
                         session.endDialogWithResult({ selection: selection, query: query });
@@ -239,13 +258,13 @@ function create(settings) {
         }
     ]);
 
-    // Helpers
+   // Helpers
     library.dialog('confirm-continue', new builder.SimpleDialog((session, args) => {
         args = args || {};
         if (args.response === undefined) {
             session.dialogData.selection = args.selection;
             session.dialogData.query = args.query;
-            builder.Prompts.confirm(session, args.message || 'Do you want to continue searching and adding more items?');
+            builder.Prompts.confirm(session, args.message || 'Do you want to continue searching?');
         } else {
             return session.endDialogWithResult({
                 done: !args.response,
@@ -275,17 +294,18 @@ function create(settings) {
         });
     }
 
+	
     function searchHitAsCard(showSave, searchHit) {
         var buttons = showSave
-            ? [new builder.CardAction().type('imBack').title('Save').value(searchHit.key)]
+            ? [new builder.CardAction().type('imBack').title('Details').value(searchHit.key)]
             : [];
 
         var card = new builder.HeroCard()
-            .title(searchHit.Description)
+            .title(searchHit.title)
             .buttons(buttons);
 
         if (searchHit.description) {
-            card.subtitle(searchHit.Solution);
+            card.subtitle(searchHit.Description);
         }
 
 
@@ -310,9 +330,9 @@ function create(settings) {
         var prompt = 'What would you like to search for?';
         if (session.dialogData.firstTimeDone) {
             prompt = 'What else would you like to search for?';
-            if (settings.multipleSelection) {
-                prompt += ' You can also *list* all items you\'ve added so far.';
-            }
+            //if (settings.multipleSelection) {
+              //  prompt += ' You can also *list* all items you\'ve added so far.';
+            //}
         }
 
         session.dialogData.firstTimeDone = true;
@@ -333,6 +353,9 @@ function create(settings) {
         }
     }
 
+
+	
+	
     function emptyQuery() {
         return { pageNumber: 1, pageSize: settings.pageSize, filters: [] };
     }
@@ -365,3 +388,14 @@ module.exports = {
     refine: refine,
     defaultResultsMapper: defaultResultsMapper
 };
+
+function createCard(session,title1,subTitle,Description) {
+    return new builder.HeroCard(session,title1,subTitle,Description)
+        .title(title1)
+        .subtitle(subTitle)
+        .text(Description)
+        .images([
+            builder.CardImage.create(session, 'https://cdn.pixabay.com/photo/2017/03/19/03/48/material-icon-2155442_960_720.png')
+        ])
+        ;
+}
